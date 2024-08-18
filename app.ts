@@ -147,20 +147,22 @@ async function approvePoolContractToSpend(AaveV3Sepolia, amount, wallet){
 }
 //async function getAavePoolInfo(){}
 //function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)
+const supplyPoolContractAddress = "0xaA6a727e587D95ECC58E3594BDDAdF699BC9eAFd";
 async function supplyAssetToAavePool(assetToProvide, amountToSupply, onBehalfOf, referralCode, AaveV3Sepolia, wallet){
-        const poolContract =  new ethers.Contract(AaveV3Sepolia, POOL_ABI, wallet);
-        const swapTx = await poolContract.supply.populateTransaction(
+        const poolContract =  new ethers.Contract(supplyPoolContractAddress, POOL_ABI, signer);
+        const supplyTx = await poolContract.supply.populateTransaction(
         assetToProvide,
         amountToSupply,
         onBehalfOf,
-        0
+        0,
+    signer
   );
-      const swapTxRes = await wallet.sendTransaction(swapTx);
+      const supplyTxRes = await wallet.sendTransaction(supplyTx);
 
 }
 //Part F - Write Main Function
 async function main(swapAmount) {
-    const inputAmount = swapAmount;
+    const inputAmount = 100;
     const amountIn = ethers.parseUnits(inputAmount.toString(), USDC.decimals);
 
     try {
@@ -178,8 +180,13 @@ async function main(swapAmount) {
     }
     //Setting up the main function to supply
     try {
-       const approveTxRes =  await approvePoolContractToSpend(AaveV3Sepolia, inputAmount, signer) ;      console.log(approveTxRes);
-      const supplyTxRes = await supplyAssetToAavePool(LINK.address, amountIn, signer, 0, AaveV3Sepolia, signer);
+       const approveTxRes =  await approvePoolContractToSpend(LINK.address, inputAmount, signer) ;      console.log(approveTxRes);
+    console.log("pool spending approved for", signer);
+  } catch (error) {
+    console.error("Fatal Error pool contract spending approval failed", error.message);
+  }
+    try {
+      const supplyTxRes = await supplyAssetToAavePool(LINK.address, amountIn, signer, 0, AaveV3Sepolia.POOL_ADDRESSES_PROVIDER, signer);
       console.log(supplyTxRes);
 
   } catch  (error){
@@ -189,4 +196,4 @@ async function main(swapAmount) {
 }
 
 // Enter USDC AMOUNT TO SWAP FOR LINK
-main(1);
+main(10);
